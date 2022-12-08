@@ -1,20 +1,17 @@
 const express = require("express");
-const bodyparser = require("body-parser");
+const bodyParser = require("body-parser");
 const { check, validationResult } = require("express-validator");
 
 const app = express();
+const port = 5000;
 
-const PORT = process.env.PORT || 5000;
-
-// parse application/x-www-form-urlencoded
-app.use(bodyparser.urlencoded({ extended: false }));
-
-// parse application/json
-app.use(bodyparser.json());
-
+// Set Templating Enginge
 app.set("view engine", "ejs");
 
-app.get("/", (req, res) => {
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+// Navigation
+app.get("", (req, res) => {
   res.render("index");
 });
 
@@ -24,19 +21,18 @@ app.get("/register", (req, res) => {
 
 app.post(
   "/register",
+  urlencodedParser,
   [
-    check("name", "The name should be more then 3 characters")
+    check("username", "This username must me 3+ characters long")
       .exists()
       .isLength({ min: 3 }),
-    check("email", "Please use correct email address")
-      .isEmail()
-      .normalizeEmail(),
+    check("email", "Email is not valid").isEmail().normalizeEmail(),
   ],
   (req, res) => {
-    const err = validationResult(req);
-    if (!err.isEmpty()) {
-      //   return res.status(422).jsonp(err.array());
-      const alert = err.array();
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // return res.status(422).jsonp(errors.array())
+      const alert = errors.array();
       res.render("register", {
         alert,
       });
@@ -44,6 +40,4 @@ app.post(
   }
 );
 
-app.listen(PORT, (req, res) => {
-  console.log(`The server is now running on port : ${PORT}`);
-});
+app.listen(port, () => console.info(`App listening on port: ${port}`));
